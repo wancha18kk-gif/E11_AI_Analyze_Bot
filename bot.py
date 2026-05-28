@@ -2,6 +2,7 @@ import os
 import logging
 import threading
 import time
+import pytz  # បានបន្ថែមសម្រាប់គ្រប់គ្រងម៉ោងតំបន់កម្ពុជា ការពារការ Crash
 from datetime import datetime
 import requests
 from flask import Flask
@@ -31,7 +32,7 @@ def run_web_server():
     port = int(os.getenv("PORT", 10000))
     app_web.run(host='0.0.0.0', port=port)
 
-# ប្រព័ន្ធ Self-Ping វាយកន្ទុយខ្លួនឯងរៀងរាល់ ១២ នាទី ការពារ Server Free កុំឱ្យ Sleep
+# ប្រព័ន្ធ Self-Ping ការពារ Server Free កុំឱ្យ Sleep (រត់រៀងរាល់ ១២ នាទី)
 def ping_self():
     while True:
         time.sleep(720)
@@ -137,7 +138,7 @@ def generate_report():
         tp_a = entry_a - (m_data["atr"] * 2.5)
         entry_b = m_data["demand"] + (m_data["atr"] * 0.2)
         sl_b = entry_b - (m_data["atr"] * 1.2)
-        tp_b = entry_b + (m_data["atr"] * 2.0)
+        tp_b = entry_b - (m_data["atr"] * 2.0)
 
     return f"""# 📊 របាយការណ៍វិភាគមាសប្រចាំថ្ងៃ (XAU/USD)
 **Institutional Grade Analysis (OANDA/Yahoo Data) | {current_date}**
@@ -201,7 +202,7 @@ async def zones_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"• **Equilibrium/Pivot Point:** ${m_data['pivot']}\n"
         f"• **Discount/Demand Zone:** ${m_data['demand']}\n"
         f"• **Estimated Daily ATR:** ${m_data['atr']}\n\n"
-        f"_*ចំណាំ៖_ គួររង់ចាំការបញ្ជាក់សញ្ញា (Confirmation Setup) នៅលើ Small Timeframe (M5/M15) ពេលតម្លៃឈានចូលតំបន់ទាំងនេះ។*"
+        f"_*ចំណាំ៖_ គួររង់ចាំការបញ្ជាក់សញ្ញา (Confirmation Setup) នៅលើ Small Timeframe (M5/M15) ពេលតម្លៃឈានចូលតំបន់ទាំងនេះ។*"
     )
     await update.message.reply_text(text=zones_text, parse_mode="Markdown")
 
@@ -212,14 +213,13 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "• /start - ចាប់ផ្ដើមដំណើរការ Bot និងទទួលសារស្វាគមន៍\n"
         "• /get_report - ទាញយករបាយការណ៍វិភាគមាសរួមពេញលេញភ្លាមៗ\n"
         "• /news - ពិនិត្យមើលតារាងព័ត៌មានសេដ្ឋកិច្ច High Impact ថ្ងៃនេះ\n"
-        "• /zones - មើលតម្លៃតំបន់គន្លឹះបច្ចេកទេស (SMC Key Zones)\n"
+        "• /zones - មើលតម្លៃតំបន់គន្លឹះបច្គេកទេស (SMC Key Zones)\n"
         "• /help - បង្ហាញសៀវភៅណែនាំប្រើប្រាស់នេះ\n\n"
         "📢 *ប្រព័ន្ធផ្សាយស្វ័យប្រវត្ត៖* ខ្ញុំនឹងផ្ញើរបាយការណ៍រួមចូលទៅកាន់ Group/Channel របស់បងជារៀងរាល់ព្រឹកនៅ **ម៉ោង ០៨:០០ ព្រឹក** (ម៉ោងនៅកម្ពុជា) ដោយស្វ័យប្រវត្ត។"
     )
     await update.message.reply_text(text=help_text, parse_mode="Markdown")
 
 def start_scheduler(application):
-    import pytz
     scheduler = BackgroundScheduler(timezone=pytz.timezone('Asia/Phnom_Penh'))
     
     def scheduled_job():
@@ -265,4 +265,4 @@ if __name__ == '__main__':
         logger.info("E11 Lab Bot is listening to commands on Telegram platform...")
         # ចាប់ផ្ដើមដំណើរការទាញទិន្នន័យសារឆាត (Polling)
         app.run_polling()
-        
+    
